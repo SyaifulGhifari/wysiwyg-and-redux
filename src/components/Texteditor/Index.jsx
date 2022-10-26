@@ -1,21 +1,28 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuill } from 'react-quilljs';
-import 'quill/dist/quill.snow.css';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import { useDispatch } from 'react-redux';
+import { setContent } from '../../redux/content';
+import { useSelector } from 'react-redux';
 
 function TextEditor() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const content = useSelector((state) => state.content.content);
+
   const { quill, quillRef } = useQuill();
-  const [value, setValue] = useState();
+  const [value, setValue] = useState(content);
 
   const render = DOMPurify.sanitize(value);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (quill) {
+      quill.clipboard.dangerouslyPasteHTML(content);
       quill.on('text-change', () => {
         console.log(quillRef.current.firstChild.innerHTML);
-        setValue(quillRef.current.firstChild.innerHTML);
+        const content = quillRef.current.firstChild.innerHTML;
+        setValue(content);
       });
     }
   }, [quill]);
@@ -44,7 +51,13 @@ function TextEditor() {
       >
         home
       </div>
-
+      <button
+        onClick={() => {
+          dispatch(setContent(value));
+        }}
+      >
+        save
+      </button>
       <div
         style={{
           marginLeft: '1em',
